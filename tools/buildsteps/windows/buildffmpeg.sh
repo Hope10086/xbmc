@@ -85,7 +85,7 @@ do_addOption "--enable-openssl"
 do_addOption "--enable-nonfree"
 do_addOption "--toolchain=msvc"
 do_addOption "--disable-mediafoundation"
-
+do_addOption "--enable-cross-compile"
 if [ "$ARCH" == "x86_64" ]; then
   FFMPEG_TARGET_OS=win64
 elif [ "$ARCH" = "x86" ]; then
@@ -94,12 +94,24 @@ elif [ "$ARCH" = "arm" ]; then
   FFMPEG_TARGET_OS=win32
 fi
 
-export CFLAGS=""
+#export CFLAGS=""
 export CXXFLAGS=""
-export LDFLAGS=""
+#export LDFLAGS=""
 
 extra_cflags="-I$LOCALDESTDIR/include -I/depends/$TRIPLET/include -DWIN32_LEAN_AND_MEAN"
 extra_ldflags="-LIBPATH:\"$LOCALDESTDIR/lib\" -LIBPATH:\"$MINGW_PREFIX/lib\" -LIBPATH:\"/depends/$TRIPLET/lib\""
+extra_ldflags="$extra_ldflags -LIBPATH:\"D:\\MicrosoftVisualStudio\\2022\\VC\\Tools\\MSVC\\14.42.34433\\lib\\x86\""
+extra_ldflags="$extra_ldflags -LIBPATH:\"C:\\Program Files (x86)\\Windows Kits\\10\\Lib\\10.0.22621.0\\um\\x86\""
+
+extra_cflags="-I$LOCALDESTDIR/include -I/depends/$TRIPLET/include -I\"D:\\MicrosoftVisualStudio\\2022\\VC\\Tools\\MSVC\\14.42.34433\\include\" -DWIN32_LEAN_AND_MEAN"
+
+# 设置 LIB 环境变量
+export LIB="D:\\MicrosoftVisualStudio\\2022\\VC\\Tools\\MSVC\\14.42.34433\\lib\\x86;$LIB"
+export LIB="C:\\Program Files (x86)\\Windows Kits\\10\\Lib\\10.0.22621.0\\um\\x86;$LIB"
+
+
+export CFLAGS="$extra_cflags"
+export LDFLAGS="$extra_ldflags"
 if [ $win10 == "yes" ]; then
   do_addOption "--enable-cross-compile"
   extra_cflags=$extra_cflags" -MD -DWINAPI_FAMILY=WINAPI_FAMILY_APP -D_WIN32_WINNT=0x0A00"
@@ -113,8 +125,23 @@ if do_checkForOptions "--enable-debug"; then
 fi
 
 cd $LOCALBUILDDIR
+echo "LOCALBUILDDIR: $LOCALBUILDDIR"
+echo "TRIPLET:$TRIPLET"
+echo "FFMPEG_TARGET_OS$FFMPEG_TARGET_OS"
+echo "FFMPEGDESTDIR:$FFMPEGDESTDIR"
+ehco "ARCH:$ARCH"
+echo "FFMPEG_OPTS_SHARED:$FFMPEG_OPTS_SHARED"
 
-do_clean_get $1
+#do_clean_get $1
+# 设置 LOCALSRCDIR 指向手动解压的 FFmpeg 源码目录
+LOCALSRCDIR=$LOCALBUILDDIR/ffmpeg-6.0.1
+
+# 检查 LOCALSRCDIR 是否存在
+if [ ! -d "$LOCALSRCDIR" ]; then
+    echo "Error: FFmpeg source directory not found at $LOCALSRCDIR"
+    exit 1
+fi
+
 [ -f config.mak ] && make distclean
 do_print_status "$LIBNAME-$VERSION (${TRIPLET})" "$blue_color" "Configuring"
 
