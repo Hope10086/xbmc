@@ -10,7 +10,10 @@ FFMPEG_DEFAULT_OPTS=""
 FFMPEG_TARGET_OS=mingw32
 
 do_loaddeps $FFMPEG_VERSION_FILE
-FFMPEGDESTDIR=$PREFIX
+FFMPEGDESTDIR=$PREFIXwget https://ffmpeg.org/releases/ffmpeg-6.0.1.tar.gz
+# wget https://ffmpeg.org/releases/ffmpeg-6.0.1.tar.gz
+# echo "945e34840092dc0fd3824eb1af2be79868af2afb4fe13159b19a9bcfc464cc4d53243c13ff065199290e9393ddbf4b1c5c8abccf83a31a31d6c7490e499fd1fc  ffmpeg-6.0.1.tar.gz" | sha512sum -c
+# tar -xzf ffmpeg-6.0.1.tar.gz
 
 do_getFFmpegConfig() {
   if [[ -f "$FFMPEG_CONFIG_FILE" ]]; then
@@ -18,6 +21,7 @@ do_getFFmpegConfig() {
   else
     FFMPEG_OPTS_SHARED="$FFMPEG_BASE_OPTS $FFMPEG_DEFAULT_OPTS"
   fi
+
 
   if [ "$ARCH" == "x86_64" ]; then
     FFMPEG_TARGET_OS=mingw64
@@ -81,11 +85,12 @@ do_getFFmpegConfig
 # enable OpenSSL, because schannel has issues
 do_removeOption "--enable-gnutls"
 do_addOption "--disable-gnutls"
-do_addOption "--enable-openssl"
+#do_addOption "--enable-openssl"
 do_addOption "--enable-nonfree"
 do_addOption "--toolchain=msvc"
 do_addOption "--disable-mediafoundation"
-do_addOption "--enable-cross-compile"
+do_addOption "--disable-libdav1d"
+#do_addOption "--enable-cross-compile"
 if [ "$ARCH" == "x86_64" ]; then
   FFMPEG_TARGET_OS=win64
 elif [ "$ARCH" = "x86" ]; then
@@ -94,24 +99,25 @@ elif [ "$ARCH" = "arm" ]; then
   FFMPEG_TARGET_OS=win32
 fi
 
-#export CFLAGS=""
+export CFLAGS=""
 export CXXFLAGS=""
-#export LDFLAGS=""
+export LDFLAGS=""
 
 extra_cflags="-I$LOCALDESTDIR/include -I/depends/$TRIPLET/include -DWIN32_LEAN_AND_MEAN"
 extra_ldflags="-LIBPATH:\"$LOCALDESTDIR/lib\" -LIBPATH:\"$MINGW_PREFIX/lib\" -LIBPATH:\"/depends/$TRIPLET/lib\""
-extra_ldflags="$extra_ldflags -LIBPATH:\"D:\\MicrosoftVisualStudio\\2022\\VC\\Tools\\MSVC\\14.42.34433\\lib\\x86\""
-extra_ldflags="$extra_ldflags -LIBPATH:\"C:\\Program Files (x86)\\Windows Kits\\10\\Lib\\10.0.22621.0\\um\\x86\""
+# extra_ldflags="$extra_ldflags -LIBPATH:\"D:\\MicrosoftVisualStudio\\2022\\VC\\Tools\\MSVC\\14.42.34433\\lib\\x86\""
+# #extra_ldflags="$extra_ldflags -LIBPATH:\"C:\\Program Files (x86)\\Windows Kits\\10\\Lib\\10.0.22621.0\\um\\x86\""
 
-extra_cflags="-I$LOCALDESTDIR/include -I/depends/$TRIPLET/include -I\"D:\\MicrosoftVisualStudio\\2022\\VC\\Tools\\MSVC\\14.42.34433\\include\" -DWIN32_LEAN_AND_MEAN"
+# extra_cflags="-I$LOCALDESTDIR/include -I/depends/$TRIPLET/include -I\"D:\\MicrosoftVisualStudio\\2022\\VC\\Tools\\MSVC\\14.42.34433\\include\" -DWIN32_LEAN_AND_MEAN"
 
-# 设置 LIB 环境变量
-export LIB="D:\\MicrosoftVisualStudio\\2022\\VC\\Tools\\MSVC\\14.42.34433\\lib\\x86;$LIB"
-export LIB="C:\\Program Files (x86)\\Windows Kits\\10\\Lib\\10.0.22621.0\\um\\x86;$LIB"
+# # 设置 LIB 环境变量
+# export LIB="D:\\MicrosoftVisualStudio\\2022\\VC\\Tools\\MSVC\\14.42.34433\\lib\\x86;$LIB"
+
+# #export LIB="C:\\Program Files (x86)\\Windows Kits\\10\\Lib\\10.0.22621.0\\um\\x86;$LIB"
 
 
-export CFLAGS="$extra_cflags"
-export LDFLAGS="$extra_ldflags"
+# export CFLAGS="$extra_cflags"
+# export LDFLAGS="$extra_ldflags"
 if [ $win10 == "yes" ]; then
   do_addOption "--enable-cross-compile"
   extra_cflags=$extra_cflags" -MD -DWINAPI_FAMILY=WINAPI_FAMILY_APP -D_WIN32_WINNT=0x0A00"

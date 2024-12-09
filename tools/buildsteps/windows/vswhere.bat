@@ -2,6 +2,7 @@
 
 IF "%1"=="" (
   ECHO ERROR! vswhere.bat: architecture not specified
+  pause
   EXIT /B 1
 )
 
@@ -12,6 +13,7 @@ IF "%VSWHERE_SET%"=="%*" (
 )
 IF "%VSWHERE_SET%" NEQ "" (
   ECHO ERROR! vswhere.bat: VC vars are configured for %VSWHERE_SET%
+  pause
   EXIT /B 1
 )
 
@@ -33,12 +35,16 @@ SET toolsdir=win32
 
 IF "%arch%" NEQ "x64" (
   SET vcarch=%vcarch%_%arch%
+
 )
+ECHO vswhere.bat: using %arch%
 
 SET vswhere="%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
-
+ECHO vswhere.bat: using %vswhere%
 FOR /f "usebackq tokens=1* delims=" %%i in (`%vswhere% -latest -property installationPath`) do (
+  ECHO %%i
   IF EXIST "%%i\VC\Auxiliary\Build\vcvarsall.bat" (
+
     SET vcvars="%%i\VC\Auxiliary\Build\vcvarsall.bat"
     SET vsver=15 2017
     ECHO %%i | findstr "2019" >NUL 2>NUL
@@ -58,10 +64,17 @@ IF %vcvars%==no (
       )
     )
   )
+  IF %vcvars%==no (
+    REM Try to set vcvarsall.bat in the old location manually
+    SET vcvars="D:\MicrosoftVisualStudio\2022\VC\Auxiliary\Build\vcvarsall.bat"
+    SET vsver=17 2022
+  )
+
 )
 
 IF %vcvars%==no (
-  ECHO "ERROR! Could not find vcvarsall.bat"
+  ECHO "ERROR! Could not find vcvarsall.bat by vswhere.exe"
+  pause
   EXIT /B 1
 )
 
@@ -73,7 +86,9 @@ POPD
 IF ERRORLEVEL 1 (
   ECHO "ERROR! something went wrong when calling"
   ECHO %vcvars% %vcarch% %vcstore% %sdkver%
+  pause
   EXIT /B 1
 )
 
 SET VSWHERE_SET=%*
+pause
